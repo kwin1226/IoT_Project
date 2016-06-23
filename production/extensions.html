@@ -1,0 +1,347 @@
+<!doctype html>
+<head>
+	<link type="text/css" rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css">
+	<link type="text/css" rel="stylesheet" href="../src/css/graph.css">
+	<link type="text/css" rel="stylesheet" href="../src/css/detail.css">
+	<link type="text/css" rel="stylesheet" href="../src/css/legend.css">
+	<link type="text/css" rel="stylesheet" href="css/extensions.css?v=2">
+
+	<script src="../vendor/d3.v3.js"></script>
+
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
+	<script>
+		// jQuery.noConflict();
+	</script>
+
+	<script src="http://ajax.aspnetcdn.com/ajax/jquery.ui/1.11.4/jquery-ui.min.js"></script>
+
+	<script src="../src/js/Rickshaw.js"></script>
+	<script src="../src/js/Rickshaw.Class.js"></script>
+	<script src="../src/js/Rickshaw.Compat.ClassList.js"></script>
+	<script src="../src/js/Rickshaw.Graph.js"></script>
+	<script src="../src/js/Rickshaw.Graph.Renderer.js"></script>
+	<script src="../src/js/Rickshaw.Graph.Renderer.Area.js"></script>
+	<script src="../src/js/Rickshaw.Graph.Renderer.Line.js"></script>
+	<script src="../src/js/Rickshaw.Graph.Renderer.Bar.js"></script>
+	<script src="../src/js/Rickshaw.Graph.Renderer.ScatterPlot.js"></script>
+	<script src="../src/js/Rickshaw.Graph.Renderer.Stack.js"></script>
+	<script src="../src/js/Rickshaw.Graph.RangeSlider.js"></script>
+	<script src="../src/js/Rickshaw.Graph.RangeSlider.Preview.js"></script>
+	<script src="../src/js/Rickshaw.Graph.HoverDetail.js"></script>
+	<script src="../src/js/Rickshaw.Graph.Annotate.js"></script>
+	<script src="../src/js/Rickshaw.Graph.Legend.js"></script>
+	<script src="../src/js/Rickshaw.Graph.Axis.Time.js"></script>
+	<script src="../src/js/Rickshaw.Graph.Behavior.Series.Toggle.js"></script>
+	<script src="../src/js/Rickshaw.Graph.Behavior.Series.Order.js"></script>
+	<script src="../src/js/Rickshaw.Graph.Behavior.Series.Highlight.js"></script>
+	<script src="../src/js/Rickshaw.Graph.Smoother.js"></script>
+	<script src="../src/js/Rickshaw.Fixtures.Time.js"></script>
+	<script src="../src/js/Rickshaw.Fixtures.Time.Local.js"></script>
+	<script src="../src/js/Rickshaw.Fixtures.Number.js"></script>
+	<script src="../src/js/Rickshaw.Fixtures.RandomData.js"></script>
+	<script src="../src/js/Rickshaw.Fixtures.Color.js"></script>
+	<script src="../src/js/Rickshaw.Color.Palette.js"></script>
+	<script src="../src/js/Rickshaw.Graph.Axis.Y.js"></script>
+	<script src="js/getPara.js"></script>
+
+	<script src="js/extensions.js"></script>
+</head>
+<body>
+
+<div id="content">
+
+	<form id="side_panel">
+		<!-- <h1>Centigrade/Humidity</h1> -->
+		<section style="border-top:0px;"><div id="legend"></div></section>
+		<section>
+			<div id="renderer_form" class="toggler">
+				<input type="radio" name="renderer" id="area" value="area" checked>
+				<label for="area">area</label>
+				<input type="radio" name="renderer" id="bar" value="bar">
+				<label for="bar">bar</label>
+				<input type="radio" name="renderer" id="line" value="line">
+				<label for="line">line</label>
+				<input type="radio" name="renderer" id="scatter" value="scatterplot">
+				<label for="scatter">scatter</label>
+			</div>
+		</section>
+		<section>
+			<div id="offset_form">
+				<label for="stack">
+					<input type="radio" name="offset" id="stack" value="zero" checked>
+					<span>stack</span>
+				</label>
+				<label for="stream">
+					<input type="radio" name="offset" id="stream" value="wiggle">
+					<span>stream</span>
+				</label>
+				<label for="pct">
+					<input type="radio" name="offset" id="pct" value="expand">
+					<span>pct</span>
+				</label>
+				<label for="value">
+					<input type="radio" name="offset" id="value" value="value">
+					<span>value</span>
+				</label>
+			</div>
+			<div id="interpolation_form">
+				<label for="cardinal">
+					<input type="radio" name="interpolation" id="cardinal" value="cardinal" checked>
+					<span>cardinal</span>
+				</label>
+				<label for="linear">
+					<input type="radio" name="interpolation" id="linear" value="linear">
+					<span>linear</span>
+				</label>
+				<label for="step">
+					<input type="radio" name="interpolation" id="step" value="step-after">
+					<span>step</span>
+				</label>
+			</div>
+		</section>
+		<section>
+			<h6>Smoothing</h6>
+			<div id="smoother"></div>
+		</section>
+		<section>
+		  <h6>Message</h6>
+		  <div id="alertLevel" style="color:red;" ></div>
+		  <input type="text" name="t1" id="t1" value="" style="display:none;" />
+
+		</section>
+		<section></section>
+	</form>
+
+	<div id="chart_container">
+		<div id="chart"></div>
+		<div id="timeline"></div>
+		<div id="preview"></div>
+	</div>
+</div>
+
+<script>
+// set up our data series with 150 random data points
+// var seriesData = [ [], [], [], [], [], [], [], [], [] ];
+//http://140.138.77.98/test/team04/phpFile/Client_rickshaw.php
+//http://localhost/phpTest/php_andrew/Client_rickshaw.php
+	$(function (){
+		var StartDay = $.url.param("s");
+		var EndDay = $.url.param("e");
+		var url = "http://localhost/project2/php_andrew/Client_rickshaw.php";
+
+
+
+		if(StartDay != "" && StartDay !="undefined" && EndDay!="" && EndDay != "undefined"){
+			url += "?s=" + StartDay + "&e=" + EndDay;
+		}
+		jQuery.getJSON(url, function(result){
+		// console.log(result);
+		var dataJSON = result;
+		initChart(dataJSON);
+		});
+
+	});
+	
+function get_response(data, type) {
+    return data[type] !== undefined ? data[type] : null;
+}
+
+function initChart(dataJSON){
+	var seriesData = [ [],[] ];
+	var count = 0;
+	var delay = 0;
+	var d1 = get_response(dataJSON, "Humidity");
+	var d2 = get_response(dataJSON, "Centigrade");
+	var nodata = false;
+	if(d1 !== null && d2 !== null){
+		var tmpCount = dataJSON.Humidity.length;
+		nodata = false;
+		if(tmpCount > 150){
+		for (var i = 0; i < 150; i++) {
+			seriesData[0].push({x:dataJSON.Humidity[i].x, y:dataJSON.Humidity[i].y});
+			seriesData[1].push({x:dataJSON.Centigrade[i].x, y:dataJSON.Centigrade[i].y});
+			count = i;
+			delay = dataJSON.Humidity[i].x;
+		}}else{
+			for (var i = 0; i < tmpCount; i++) {
+			seriesData[0].push({x:dataJSON.Humidity[i].x, y:dataJSON.Humidity[i].y});
+			seriesData[1].push({x:dataJSON.Centigrade[i].x, y:dataJSON.Centigrade[i].y});
+			count = i;
+			delay = dataJSON.Humidity[i].x;
+		}
+		}
+	}else{
+		nodata = true;
+		for (var i = 0; i < 150; i++) {
+			seriesData[0].push({x:i, y:0});
+			seriesData[1].push({x:i, y:0});
+			count = i;
+			delay = count;
+		}
+	}
+
+	
+
+	var graph = new Rickshaw.Graph( {
+		element: document.getElementById("chart"),
+		width: 750,
+		height: 500,
+		renderer: 'area',
+		// stroke: true,
+		preserve: true,
+		series: [
+			{
+				color: 'LightSeaGreen',
+				data: seriesData[0],
+				maxDataPoints: 150,
+				name: 'Humidity'
+			}, 
+			{
+				color: 'Gainsboro',
+				data: seriesData[1],
+				maxDataPoints: 150,
+				name: 'Centigrade'
+			} 
+		]
+	} );
+
+	var palette = new Rickshaw.Color.Palette( { scheme: 'classic9' } );
+
+	// instantiate our graph!
+
+	graph.render();
+
+	var preview = new Rickshaw.Graph.RangeSlider( {
+		graph: graph,
+		element: document.getElementById('preview'),
+	} );
+	if(nodata == false){
+		var hoverDetail = new Rickshaw.Graph.HoverDetail( {
+		graph: graph,
+		xFormatter: function(x) { //x為滑鼠指向座標
+			var p = x - dataJSON.Humidity[0].x;
+			// console.log("x:" + x);
+			// console.log("p:" + p);
+			if(dataJSON.Humidity[p] !== null && dataJSON.Humidity[p] !== undefined){
+			return (dataJSON.Humidity[p].z + " 台灣標準時間(GMT+8)");
+				}else{
+					return "none data";
+				}
+			}
+		} );
+	}else if(nodata == true){
+		var hoverDetail = new Rickshaw.Graph.HoverDetail( {
+		graph: graph,
+		xFormatter: function(x) { //x為滑鼠指向座標
+			return "none data";
+			}
+		} );
+	}
+
+	var annotator = new Rickshaw.Graph.Annotate( {
+		graph: graph,
+		element: document.getElementById('timeline')
+	} );
+
+	var legend = new Rickshaw.Graph.Legend( {
+		graph: graph,
+		element: document.getElementById('legend')
+
+	} );
+
+	var shelving = new Rickshaw.Graph.Behavior.Series.Toggle( {
+		graph: graph,
+		legend: legend
+	} );
+
+	var order = new Rickshaw.Graph.Behavior.Series.Order( {
+		graph: graph,
+		legend: legend
+	} );
+
+	var highlighter = new Rickshaw.Graph.Behavior.Series.Highlight( {
+		graph: graph,
+		legend: legend
+	} );
+
+	var smoother = new Rickshaw.Graph.Smoother( {
+		graph: graph,
+		element: document.querySelector('#smoother')
+	} );
+
+	var ticksTreatment = 'glow';
+
+	// var xAxis = new Rickshaw.Graph.Axis.Time( {
+	// 	graph: graph,
+	// 	ticksTreatment: ticksTreatment,
+	// 	timeFixture: new Rickshaw.Fixtures.Time.Local()
+	// } );
+
+	// xAxis.render();
+
+	var yAxis = new Rickshaw.Graph.Axis.Y( {
+		graph: graph,
+		tickFormat: Rickshaw.Fixtures.Number.formatKMBT,
+		ticksTreatment: ticksTreatment
+	} );
+
+	yAxis.render();
+
+
+	var controls = new RenderControls( {
+		element: document.querySelector('form'),
+		graph: graph
+	} );
+
+	setInterval( function() {
+		if((count+1) < dataJSON.Humidity.length){
+		++count;
+		nodata = false;
+		console.log("nodata:" + nodata);
+		delay = dataJSON.Humidity[count].x;
+		seriesData[0].shift();
+		seriesData[1].shift();
+		seriesData[0].push({x:dataJSON.Humidity[count].x, y:dataJSON.Humidity[count].y});
+		seriesData[1].push({x:dataJSON.Centigrade[count].x, y:dataJSON.Centigrade[count].y});
+		}else{
+		++delay;
+		nodata = true;
+		console.log("delay:" + delay);
+		console.log("nodata:" + nodata);
+		seriesData[0].shift();
+		seriesData[1].shift();
+		seriesData[0].push({x:delay, y:0});
+		seriesData[1].push({x:delay, y:0});
+		}
+		graph.update();		
+		checkLevel(dataJSON.Humidity[count].y, dataJSON.Centigrade[count].y,dataJSON.Humidity[count].z);
+
+	}, 1000 );
+
+	var previewXAxis = new Rickshaw.Graph.Axis.Time({
+		graph: preview.previews[0],
+		timeFixture: new Rickshaw.Fixtures.Time.Local(),
+		ticksTreatment: ticksTreatment
+	});
+
+	previewXAxis.render();
+
+}
+
+function checkLevel(Humidity, Centigrade, date){ 
+  if(Humidity >= 98){
+  	var msg = date +"<br>Humidity is too high!";
+    $("#alertLevel").html(msg);
+    $("#t1").attr("value","Humidity is too high").trigger('change');
+  }
+
+  if(Centigrade >= 30){
+  	var msg = date +"<br>Centigrade is too high!";
+    $("#alertLevel").html(msg);
+    $("#t1").attr("value", "Humidity is too high").trigger('change');
+  }
+}
+
+</script>
+
+</body>
