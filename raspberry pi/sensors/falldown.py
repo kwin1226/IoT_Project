@@ -10,12 +10,16 @@ GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
 # Define GPIO to use on Pi
 GPIO_LED = 4
-GPIO_PIR = 7
+GPIO_Sounds = 22
+GPIO_PIR = 27
+flg = False
+
 
 print "PIR Module Test (CTRL-C to exit)"
 
 # Set pin as input
 GPIO.setup(GPIO_LED,GPIO.OUT)
+GPIO.setup(GPIO_Sounds, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 GPIO.setup(GPIO_PIR,GPIO.IN)      # Echo
 Current_State = 0
 Previous_State = 0
@@ -53,16 +57,15 @@ try:
     # Read PIR state
     Current_State = GPIO.input(GPIO_PIR)
  
-    if Current_State==1 and Previous_State==0:
+    if Current_State==1 and Previous_State==0 and GPIO.input(GPIO_Sounds) == 0:
+      flg = not flg 
+
       # PIR is triggered
-      print "  Motion detected!"
+      print "  Fall down detected!"
       #If Motion detected, light up the LED
-      for i in range(10):
-        GPIO.output(4,1)
-        time.sleep(0.2)
-        GPIO.output(4,0)
-        time.sleep(0.2)
-      os.system("python Trans_DHT.py 11 17")
+      GPIO .output(GPIO_LED, flg)
+
+      # os.system("python Trans_DHT.py 11 17")
       # mySql_Con()
       # Record previous state
       Previous_State=1
@@ -77,6 +80,4 @@ try:
 except KeyboardInterrupt:
   print "  Quit"
   # Reset GPIO settings
-  GPIO.cleanup()
-
-
+GPIO.cleanup()
